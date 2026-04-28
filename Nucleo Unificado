@@ -47,6 +47,13 @@ class ATM_Core:
                     alvo_principal = mat
                     nivel_prioridade = 2
 
+    def processar_com_seguranca(self, dados):
+        try:
+            if len(dados) == 0:
+                raise ValueError("Sensor sem dados.")
+            return self.filtro_adaptativo(dados)
+        except Exception as e:
+            return f"ERRO DE SISTEMA: {str(e)} - Verifique a conexão do Escâner."
         if alvo_principal:
             return f"FOCO PRIORITÁRIO DEFINIDO: {alvo_principal['nome']} (Nível {nivel_prioridade})"
         return "Nenhum alvo de alta relevância detectado."
