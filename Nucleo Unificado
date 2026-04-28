@@ -58,6 +58,18 @@ class ATM_Core:
             return f"FOCO PRIORITÁRIO DEFINIDO: {alvo_principal['nome']} (Nível {nivel_prioridade})"
         return "Nenhum alvo de alta relevância detectado."
 
+    def modo_deserto(self, sinal_bruto):
+        """
+        Aumenta a sensibilidade para detectar umidade e minerais 
+        sob camadas de areia seca.
+        """
+        # No deserto, o sinal é fraco devido à dispersão da areia
+        fator_penetracao = 3.5  # Amplificação necessária
+        ruido_areia = 0.15      # Limiar de ruído da areia
+        
+        sinal_filtrado = np.where(sinal_bruto > ruido_areia, sinal_bruto, 0)
+        return sinal_filtrado * fator_penetracao
+
 # --- SIMULAÇÃO DE EXECUÇÃO ---
 atm = ATM_Core()
 
