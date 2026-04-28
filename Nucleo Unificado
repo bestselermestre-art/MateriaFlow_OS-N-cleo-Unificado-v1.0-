@@ -1,0 +1,71 @@
+import numpy as np
+
+class ATM_Core:
+    def __init__(self, ruido_base=0.3):
+        self.ruido_base = ruido_base
+        # Biblioteca de Assinaturas (Química de Unidade)
+        self.assinaturas = {
+            "Ouro": 0.95,
+            "Lítio": 0.88,
+            "Hematita": 0.75,
+            "Água": 0.50,
+            "Rocha Comum": 0.20
+        }
+
+    def filtro_adaptativo(self, sinal_bruto):
+        """Limpa o ruído térmico e compensa a profundidade."""
+        sinal_limpo = np.where(sinal_bruto > self.ruido_base, sinal_bruto, 0)
+        return sinal_limpo * 1.5  # Fator de correção ATM
+
+    def identificar_material(self, valor_sinal):
+        """Compara o sinal com a base química."""
+        material = min(self.assinaturas, key=lambda x: abs(self.assinaturas[x] - valor_sinal))
+        return material
+
+    def validador_sistema(self, cor_status, valor_numerico):
+        """Verifica a integridade da telemetria."""
+        if cor_status == "Verde" and valor_numerico > 1000:
+            return "ALERTA: Divergência detectada! Cor não condiz com a Telemetria."
+        if cor_status == "Vermelho" and valor_numerico < 10:
+            return "LOG: Falso positivo detectado no sensor."
+        return "Sistemas sincronizados."
+
+    def definir_prioridade(self, materiais_detectados):
+        """Define o foco principal do escaneamento."""
+        alvo_principal = None
+        nivel_prioridade = 0
+
+        for mat in materiais_detectados:
+            # Prioridade máxima: Anomalias ou Alta Densidade
+            if mat.get('tipo') == "Anomalia" or mat.get('densidade', 0) > 25:
+                if nivel_prioridade < 3:
+                    alvo_principal = mat
+                    nivel_prioridade = 3
+            # Prioridade média: Metais Valiosos
+            elif mat.get('nome') in ["Ouro", "Hematita", "Lítio"]:
+                if nivel_prioridade < 2:
+                    alvo_principal = mat
+                    nivel_prioridade = 2
+
+        if alvo_principal:
+            return f"FOCO PRIORITÁRIO DEFINIDO: {alvo_principal['nome']} (Nível {nivel_prioridade})"
+        return "Nenhum alvo de alta relevância detectado."
+
+# --- SIMULAÇÃO DE EXECUÇÃO ---
+atm = ATM_Core()
+
+# 1. Simular leitura de sensor
+leitura_bruta = np.array([0.1, 0.85, 0.2, 0.92, 0.05])
+sinal_processado = atm.filtro_adaptativo(leitura_bruta)
+
+# 2. Identificar materiais nos picos de sinal
+materiais_vistos = []
+for sinal in sinal_processado:
+    if sinal > 0:
+        nome = atm.identificar_material(sinal)
+        materiais_vistos.append({"nome": nome, "densidade": sinal * 10})
+
+# 3. Resultado Final
+print(atm.validador_sistema("Azul", 500))
+print(f"Relatório de Varredura: {[m['nome'] for m in materiais_vistos]}")
+print(atm.definir_prioridade(materiais_vistos))
